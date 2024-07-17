@@ -30,7 +30,7 @@ const TopAfrica = () => {
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
-    const articlesPerPage = 6;
+    const articlesPerPage = 9; // Display 9 or 12 items per page
 
     const handleClicked = () => {
         setShowCard(!showCard);
@@ -83,14 +83,33 @@ const TopAfrica = () => {
         fetchDataForAllCountries();
     }, [date]);
 
-    // Pagination calculations
+    // Calculate pagination values
     const indexOfLastArticle = currentPage * articlesPerPage;
     const indexOfFirstArticle = indexOfLastArticle - articlesPerPage;
     const currentArticles = data.slice(indexOfFirstArticle, indexOfLastArticle);
     const totalPages = Math.ceil(data.length / articlesPerPage);
 
+    // Handle  pagination changes
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+    // Render page numbers for pagination
+    const renderPageNumbers = () => {
+        const pageNumbers = [];
+        for (let i = 1; i <= totalPages; i++) {
+            pageNumbers.push(
+                <button
+                    key={i}
+                    onClick={() => paginate(i)}
+                    className={`px-2 py-1 mx-1 ${currentPage === i ? 'bg-blue-500 text-white' : 'bg-gray-300'}`}
+                >
+                    {i}
+                </button>,
+            );
+        }
+        return pageNumbers;
+    };
+
+    // Display loading component if data is loading
     if (loading)
         return (
             <div className='flex justify-center m-4 h-full items-center w-full'>
@@ -108,12 +127,7 @@ const TopAfrica = () => {
                     Articles List/Article Gallery
                 </button>
                 <DatePicker onChange={handleChange} />
-                <h1
-                    className='text-white
-                '
-                >
-                    Top Africa Atricle: {`${date.day}/${date.month}/${date.year}`}
-                </h1>
+                <h1 className='text-white'>Top Africa Article: {`${date.day}/${date.month}/${date.year}`}</h1>
             </div>
 
             {loadingCard && !showCard && (
@@ -165,17 +179,15 @@ const TopAfrica = () => {
                     disabled={currentPage === 1}
                     className='px-4 py-2 bg-gray-300 rounded disabled:opacity-50'
                 >
-                    Previous
+                    &larr;
                 </button>
-                <span className='text-lg text-white font-semibold'>
-                    Page {data.length == 0 ? 0 : currentPage} of {totalPages}
-                </span>
+                <div className='flex'>{renderPageNumbers()}</div>
                 <button
                     onClick={() => paginate(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     className='px-4 py-2 bg-gray-300 rounded disabled:opacity-50'
                 >
-                    Next
+                    &rarr;
                 </button>
             </div>
         </div>
