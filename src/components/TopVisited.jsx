@@ -7,11 +7,17 @@ import Pagination from './Pagination';
 import SearchBar from './SearchBar';
 import { toast } from 'react-toastify';
 import ArticleCardSkeletton from './ArticleCardSkeletton';
+import getTrueArticles from '../helpers/getTrueArticles';
+import countries from '../helpers/countriesIsoCodes';
+
+const getCountryNameByCode = (continent, code) => {
+    const country = countries[continent].find((country) => country.code === code);
+    return country ? country.name : code;
+};
 
 const TopVisited = () => {
     const [loading, setLoading] = useState(false);
     const [articles, setArticles] = useState([]);
-    // const [error, setError] = useState(null);
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [theUrl] = useState(window.location.origin + window.location.pathname);
     const [newUrl, setNewUrl] = useState('');
@@ -28,18 +34,19 @@ const TopVisited = () => {
         setCurrentPage(page);
     };
 
-    // const paginatedItems = ;
-
     const handleSubmit = useCallback(async (formData) => {
         setLoading(true);
-        // setError(null);
 
         try {
             const response = await fetchArticles(formData);
 
             if (response && response.data && response.data.items && response.data.items.length > 0) {
-                setArticles(response.data.items[0].articles);
-                // setError(null);
+                const trueArticles = await getTrueArticles(
+                    response.data.items[0].articles.map((art) => {
+                        return { ...art, title: art.article, country: getCountryNameByCode(formData.continent, response.data.items[0].country) };
+                    }),
+                );
+                setArticles(trueArticles);
                 setNewUrl(theUrl + 'permanent/' + formData.country + '_' + formData.access + '_' + formData.date + '_' + formData.continent);
             } else {
                 setArticles([]);
@@ -80,7 +87,8 @@ const TopVisited = () => {
         } finally {
             setLoading(false);
         }
-    });
+    }, [theUrl]);
+
     useEffect(() => {
         if (theUrl.includes('permanent')) {
             const params = theUrl.split('permanent')[1].slice(1).split('_');
@@ -96,7 +104,7 @@ const TopVisited = () => {
 
             handleSubmit(formData);
         }
-    }, []);
+    }, [theUrl, handleSubmit]);
 
     async function handleCopyUrl() {
         await navigator.clipboard.writeText(newUrl).then(() =>
@@ -114,11 +122,12 @@ const TopVisited = () => {
 
     const exportToCSV = () => {
         const csv = Papa.unparse(
-            articles.map(({ article, project, rank, views_ceil }) => ({
+            articles.map(({ article, project, rank, views_ceil, country }) => ({
                 article,
                 project,
                 rank,
                 views_ceil,
+                country,
             })),
         );
 
@@ -153,8 +162,6 @@ const TopVisited = () => {
             <div className='container mx-auto flex_center'>
                 <div className='bg-slate-100 rounded-xl max-md:flex max-md:justify-center'>
                     <ArticleForm onSubmit={handleSubmit} loading={loading} continentUrl={continentFromUrl} countryUrl={countryFromUrl} />
-                    {/* <ArticleForm onSubmit={handleSubmit} loading={loading} /> */}
-                    {/* {error && <p className='error text-center my-3 text-red-500 py-2 pb-4'>Error: {error}</p>} */}
                 </div>
                 {loading && (
                     <div>
@@ -167,7 +174,6 @@ const TopVisited = () => {
                         </ul>
                     </div>
                 )}
-                {/* {error && <p className='error text-center my-3'>Error: {error}</p>} */}
                 {articles.length > 0 && (
                     <div className='flex justify-between max-md:flex-col-reverse pt-4'>
                         <div className='relative flex text-left'>
@@ -193,7 +199,6 @@ const TopVisited = () => {
                                     </svg>
                                 </button>
                             </div>
-
                             {dropdownOpen && (
                                 <div className=' origin-top-right absolute right-0 w-56 rounded-md shadow-lg ring-1 ring-black ring-opacity-5'>
                                     <div className='py-1' role='menu' aria-orientation='vertical' aria-labelledby='options-menu'>
@@ -223,15 +228,21 @@ const TopVisited = () => {
                         <SearchBar articles={articles} setFilteredArticles={setFilteredArticles} />
                     </div>
                 )}
-
                 <div className='articles'>
                     {filteredArticles && filteredArticles?.length > 0 ? (
                         <div>
                             <ul className='flex flex-wrap items-center justify-center pt-[2rem] max-md:flex-col'>
                                 {paginatedItems?.length > 0 &&
-                                    paginatedItems.map(({ article, project, rank, views_ceil }) => (
+                                    paginatedItems.map(({ article, project, rank, views_ceil, country }) => (
                                         <div className='w-1/3 p-8  max-md:w-[90vw]' key={article}>
-                                            <ArticleCard key={article} article={article} project={project} rank={rank} views_ceil={views_ceil} />
+                                            <ArticleCard
+                                                key={article}
+                                                article={article}
+                                                project={project}
+                                                rank={rank}
+                                                views_ceil={views_ceil}
+                                                country={country}
+                                            />
                                         </div>
                                     ))}
                             </ul>
