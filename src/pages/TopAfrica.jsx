@@ -31,7 +31,7 @@ export default function Africa() {
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
-    const articlesPerPage = 9; // Display 9 or 12 items per page
+    const articlesPerPage = showCard ? 12 : 18; // Display 9 or 12 items per page
 
     const handleClicked = () => {
         setShowCard(!showCard);
@@ -113,18 +113,18 @@ export default function Africa() {
     // Display loading component if data is loading
     if (loading)
         return (
-            <div className='flex justify-center m-4 h-full items-center w-full'>
+            <div className='flex items-center justify-center w-full h-full m-4'>
                 <Loading />
             </div>
         );
     if (error) return <p>Error: {error.message}</p>;
     return (
         <main>
-            <div className='african p-4'>
-                <h1 className='text-2xl text-white font-bold text-center mb-4'>Top Wikimedia Articles in Africa</h1>
+            <div className='p-4 african'>
+                <h1 className='mb-4 text-2xl font-bold text-center text-white'>Top Wikimedia Articles in Africa</h1>
 
-                <div className='flex flex-wrap justify-center items-center gap-5 my-3'>
-                    <button onClick={handleClicked} className='bg-blue-500 text-white px-4 py-2 rounded'>
+                <div className='flex flex-wrap items-center justify-center gap-5 my-3'>
+                    <button onClick={handleClicked} className='px-4 py-2 text-white bg-blue-500 rounded'>
                         Articles List/Article Gallery
                     </button>
                     <DatePicker onChange={handleChange} />
@@ -164,17 +164,17 @@ export default function Africa() {
                             ))}
                         </div>
                     ) : (
-                        <div className='flex flex-col justify-center items-center'>
+                        <div className='flex flex-col items-center justify-center'>
                             <ListArticlesResult articlesData={currentArticles} />
                         </div>
                     ))}
                 {data.length == 0 && (
-                    <div className='w-full flex text-white justify-center mb-3'>
+                    <div className='flex justify-center w-full mb-3 text-white'>
                         <p>No Article Post</p>
                     </div>
                 )}
 
-                <div className='flex justify-center items-center gap-4 my-5 mb-12'>
+                <div className='flex items-center justify-center gap-4 my-5 mb-12'>
                     <button
                         onClick={() => paginate(currentPage - 1)}
                         disabled={currentPage === 1}
