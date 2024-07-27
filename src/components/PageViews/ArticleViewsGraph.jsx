@@ -8,11 +8,12 @@ Chart.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Too
 
 const ArticleViewsGraph = ({ articles }) => {
     const [viewData, setViewData] = useState({});
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const fetchAllViews = async () => {
             try {
+                setLoading(true); // Set loading to true when API request is made
                 const allDataPromises = articles.map(async (article) => {
                     const response = await fetchPageViewsCount(article);
                     const views = response.items;
@@ -47,11 +48,11 @@ const ArticleViewsGraph = ({ articles }) => {
                     labels: combinedDates,
                     datasets,
                 });
-
-                setLoading(false);
             } catch (error) {
-                setLoading(true);
-                return;
+                // Handled error properly by setting loading to false and clearing viewData
+                setViewData({});
+            } finally {
+                setLoading(false); // Ensuring loading is set to false in finally block
             }
         };
 
@@ -61,7 +62,13 @@ const ArticleViewsGraph = ({ articles }) => {
     return (
         <div className='graph w-full flex flex-col items-center'>
             <h2 className='font-bold text-white text-xl self-start'>Views for Multiple Articles</h2>
-            {loading ? <Loading /> : viewData.labels ? <Line data={viewData} /> : <p>No data available.</p>}
+            {loading ? (
+                <Loading />
+            ) : viewData.labels ? (
+                <Line data={viewData} />
+            ) : (
+                <p className='text-white text-2xl absolute top-1/2 right-1/4 transform -translate-x-1/2 -translate-y-1/2'>No data available.</p>
+            )}
         </div>
     );
 };
